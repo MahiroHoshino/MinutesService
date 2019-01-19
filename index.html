@@ -1,1 +1,70 @@
-test
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>議事録サービス</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+            var flag_speech = 0;
+            function voice_recognition() {
+                window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
+    
+                var recognition = new webkitSpeechRecognition();
+                recognition.lang = 'ja';
+                recognition.interimResults = true;
+                recognition.continuous = true;
+     
+                recognition.onsoundstart = function() {
+                    document.getElementById('status').innerHTML = "認識中";
+                };
+                recognition.onnomatch = function() {
+                    document.getElementById('status').innerHTML = "もう一度試してください";
+                };
+                recognition.onerror = function() {
+                    document.getElementById('status').innerHTML = "エラー";
+                    if(flag_speech == 0) {
+                        voice_recognition();
+                    }
+                };
+                recognition.onsoundend = function() {
+                    document.getElementById('status').innerHTML = "停止中";
+                    voice_recognition();
+                };
+     
+                recognition.onresult = function(event) {
+                    var results = event.results;
+                    for (var i = event.resultIndex; i < results.length; i++) {
+                        if (results[i].isFinal) {
+                            document.getElementById('result_text').innerHTML = results[i][0].transcript;
+                            postData(createPostObj());
+                            voice_recognition();
+                        } else {
+                            document.getElementById('result_text').innerHTML = "[途中経過] " + results[i][0].transcript;
+                            flag_speech = 1;
+                        }
+                    }
+                }
+                flag_speech = 0;
+                document.getElementById('status').innerHTML = "start";
+                recognition.start();
+            }
+
+            function postData(obj) {
+                $.post("toMinutes.py", obj);
+                console.log(obj)
+            }
+
+            function createPostObj() {
+                return {"text":"議事録","time":"12:21:11"}
+            }
+        </script> 
+    
+</head>
+<body>
+    <textarea id="result_text" cols="100" rows="10"></textarea><br>
+    <textarea id="status" cols="100" rows="1"></textarea><br>
+    <input type="button" onClick="voice_recognition();" value="音声認識開始">
+</body>
+</html>
