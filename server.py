@@ -18,4 +18,3 @@ def post():
 
 if __name__ == "__main__":
   app.run(debug=True, host='0.0.0.0', port=5000, threaded=True)
-    # app.run(host = '0.0.0.0', port = 334, ssl_context = ('server.crt', 'server.key'), threaded = True, debug = True)

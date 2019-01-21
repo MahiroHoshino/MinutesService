@@ -64,13 +64,14 @@
 
             function createPostObj(text) {
                 var time = new Date();
+                var year = time.getFullYear()
                 var hour = time.getHours();
                 var minute = time.getMinutes();
                 var second = time.getSeconds();
 
-                var now = hour + ":" + minute + ":" + second
+                var now = year + ":" + hour + ":" + minute + ":" + second
 
-                return  {"name":"星野", "text":text,"time": now}
+                return  {"name": document.getElementById('name').value, "text": text,"time": now}
             }
         </script> 
     
@@ -78,6 +79,7 @@
 <body>
     <textarea id="result_text" cols="100" rows="10"></textarea><br>
     <textarea id="status" cols="100" rows="1"></textarea><br>
-    <input type="button" onClick="voice_recognition();" value="音声認識開始">
+    <input type="button" onClick="voice_recognition();" value="音声認識開始"><br>
+    <input id="name" type="text" placeholder="user name">
 </body>
 </html>
