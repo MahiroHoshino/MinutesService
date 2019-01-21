@@ -38,7 +38,7 @@
                     for (var i = event.resultIndex; i < results.length; i++) {
                         if (results[i].isFinal) {
                             document.getElementById('result_text').innerHTML = results[i][0].transcript;
-                            postData(createPostObj());
+                            postData(createPostObj(results[i][0].transcript));
                             voice_recognition();
                         } else {
                             document.getElementById('result_text').innerHTML = "[途中経過] " + results[i][0].transcript;
@@ -52,12 +52,25 @@
             }
 
             function postData(obj) {
-                $.post("toMinutes.py", obj);
+                $.ajax({
+                    url: 'http://127.0.0.1:5000/post',
+                    type: 'POST',
+                    dataType: 'json',
+                    data: obj,
+                    timeout: 5000,
+                });
                 console.log(obj);
             }
 
-            function createPostObj() {
-                return {"text":"議事録","time":"12:21:11"}
+            function createPostObj(text) {
+                var time = new Date();
+                var hour = time.getHours();
+                var minute = time.getMinutes();
+                var second = time.getSeconds();
+
+                var now = hour + ":" + minute + ":" + second
+
+                return  {"name":"星野", "text":text,"time": now}
             }
         </script> 
     
