@@ -1,10 +1,14 @@
-from flask import Flask, render_template, request, json
+from flask import Flask, render_template, request
 
 app = Flask(__name__)
 
 @app.route("/")
 def index():
-    return render_template('index.html')
+  return render_template('index.html')
+
+@app.route("/getminutes")
+def get_minutes():
+  return render_template('getminutes.html')
 
 @app.route("/post", methods=["GET", "POST"])
 def post():
