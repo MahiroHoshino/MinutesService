@@ -5,8 +5,25 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script>
+    function download() {
+        filename = $('[name=select]').val() || 'file';
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = 'http://127.0.0.1:8000/download/' + filename;
+        link.click();
+        console.log(link);
+    }
+
+    </script>
 </head>
 <body>
-        
+    <select name="select">
+        {% for l in list %}
+            <option value="{{l}}">{{l}}</option>
+        {% endfor %}
+    </select><br>
+    <button onclick="download()">ダウンロード</button>
 </body>
 </html>
