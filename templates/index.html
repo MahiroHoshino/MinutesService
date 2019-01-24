@@ -7,6 +7,7 @@
     <title>議事録サービス</title>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script type="text/javascript">
+            var time
             var flag_speech = 0;
             function voice_recognition() {
                 window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
@@ -18,6 +19,7 @@
      
                 recognition.onsoundstart = function() {
                     document.getElementById('status').innerHTML = "認識中";
+                    time = new Date();
                 };
                 recognition.onnomatch = function() {
                     document.getElementById('status').innerHTML = "もう一度試してください";
@@ -52,26 +54,46 @@
             }
 
             function postData(obj) {
-                $.ajax({
-                    url: 'http://127.0.0.1:8000/post',
-                    type: 'POST',
-                    dataType: 'json',
-                    data: obj,
-                    timeout: 5000,
-                });
                 console.log(obj);
+                $.ajax({
+                    url: '/post',
+                    type: 'POST',
+                    dataType: "json",
+                    data: obj,
+                    timeout: 5000
+                }).done(function(res) {
+                    $('#text_area').empty();
+                    res.forEach(element => {
+                        $('#text_area').append("<p>" + element['name'] + ":" + element['text'] + "</p>");
+                    });
+                });
             }
 
             function createPostObj(text) {
-                var time = new Date();
-                var year = time.getFullYear()
+                var year = time.getFullYear();
+                var month = time.getMonth() + 1;
+                var day = time.getDate();
                 var hour = time.getHours();
                 var minute = time.getMinutes();
                 var second = time.getSeconds();
-
-                var now = year + ":" + hour + ":" + minute + ":" + second
-
-                return  {"name": document.getElementById('name').value, "text": text,"time": now}
+                var millisecond = time.getMilliseconds();
+                return {
+                    "name" : document.getElementById('name').value, 
+                    "text" : text,
+                    "year" : year,
+                    "month" : month,
+                    "day" : day,
+                    "hour" : hour,
+                    "minute" : minute,
+                    "second" : second,
+                    "millisecond" : millisecond
+                };
+            }
+            function reset() {
+                $.ajax({
+                    url: '/reset',
+                    type: 'POST',
+                });
             }
         </script> 
     
@@ -79,7 +101,8 @@
 <body>
     <textarea id="result_text" cols="100" rows="10"></textarea><br>
     <textarea id="status" cols="100" rows="1"></textarea><br>
-    <input type="button" onClick="voice_recognition();" value="音声認識開始"><br>
-    <input id="name" type="text" placeholder="user name">
+    <input type="button" onClick="voice_recognition();" value="音声認識開始"><input type="button" onClick="reset();" value="リセット"><br>
+    <input id="name" type="text" placeholder="user name"><br>
+    <div id="text_area" style="border: 1xp solid #444"></div>
 </body>
 </html>

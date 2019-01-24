@@ -11,7 +11,7 @@
         filename = $('[name=select]').val() || 'file';
         var link = document.createElement('a');
         link.download = filename;
-        link.href = 'http://127.0.0.1:8000/download/' + filename;
+        link.href = '/download/' + filename;
         link.click();
         console.log(link);
     }
