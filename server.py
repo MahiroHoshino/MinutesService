@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, make_response, Response, json
 import datetime
 import json
 import os
+import shutil
 
 app = Flask(__name__)
 text_list = []
@@ -14,7 +15,21 @@ def index():
 @app.route("/reset", methods=["POST"])
 def reset():
     text_list.clear()
+    shutil.rmtree("./static/download")
+    os.mkdir("./static/download")
+    os.defpath
     return ""
+
+
+@app.route("/download/<file_name>", methods=["POST"])
+def download(file_name):
+    global text_list
+    file = open('static/download/' + file_name + '.txt', 'a', encoding='utf-8')
+    for list in text_list:
+        file.write(list['name'] + ":" + list['text'] + "\n")
+    file.close()
+
+    return open('static/download/' + file_name + '.txt', "rb").read()
 
 
 @app.route("/post", methods=["POST"])
@@ -33,9 +48,6 @@ def post():
         millisecond = int(request.form['millisecond'])
 
         time = datetime.datetime(year, month, day, hour, minute, second, millisecond * 1000).strftime("%Y-%m-%d %H:%M:%S.%f")
-
-        file = open('minutes/test.txt', 'a', encoding='utf-8')
-        file.write(name + "," + text + "," + time + "\n")
 
         text_list.append({
                 'name' : name,

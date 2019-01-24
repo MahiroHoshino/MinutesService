@@ -5,104 +5,121 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>議事録サービス</title>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>    
     <script type="text/javascript">
-            var time
-            var flag_speech = 0;
-            function voice_recognition() {
-                window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
-    
-                var recognition = new webkitSpeechRecognition();
-                recognition.lang = 'ja';
-                recognition.interimResults = true;
-                recognition.continuous = true;
-     
-                recognition.onsoundstart = function() {
-                    document.getElementById('status').innerHTML = "認識中";
-                    time = new Date();
-                };
-                recognition.onnomatch = function() {
-                    document.getElementById('status').innerHTML = "もう一度試してください";
-                };
-                recognition.onerror = function() {
-                    document.getElementById('status').innerHTML = "エラー";
-                    if(flag_speech == 0) {
-                        voice_recognition();
-                    }
-                };
-                recognition.onsoundend = function() {
-                    document.getElementById('status').innerHTML = "停止中";
-                    voice_recognition();
-                };
-     
-                recognition.onresult = function(event) {
-                    var results = event.results;
-                    for (var i = event.resultIndex; i < results.length; i++) {
-                        if (results[i].isFinal) {
-                            document.getElementById('result_text').innerHTML = results[i][0].transcript;
-                            postData(createPostObj(results[i][0].transcript));
-                            voice_recognition();
-                        } else {
-                            document.getElementById('result_text').innerHTML = "[途中経過] " + results[i][0].transcript;
-                            flag_speech = 1;
-                        }
-                    }
-                }
-                flag_speech = 0;
-                document.getElementById('status').innerHTML = "start";
-                recognition.start();
-            }
+'use strict';
+$(function() {
 
-            function postData(obj) {
-                console.log(obj);
-                $.ajax({
-                    url: '/post',
-                    type: 'POST',
-                    dataType: "json",
-                    data: obj,
-                    timeout: 5000
-                }).done(function(res) {
-                    $('#text_area').empty();
-                    res.forEach(element => {
-                        $('#text_area').append("<p>" + element['name'] + ":" + element['text'] + "</p>");
+    function createPostObj(text, time) {
+        var year = time.getFullYear();
+        var month = time.getMonth() + 1;
+        var day = time.getDate();
+        var hour = time.getHours();
+        var minute = time.getMinutes();
+        var second = time.getSeconds();
+        var millisecond = time.getMilliseconds();
+        return {
+            "name" : $('#name').val(), 
+            "text" : text,
+            "year" : year,
+            "month" : month,
+            "day" : day,
+            "hour" : hour,
+            "minute" : minute,
+            "second" : second,
+            "millisecond" : millisecond
+        };
+    }
+
+    function voiceRecognition() {
+        window.SpeechRecognition = window.SpeechRecognition || webkitSpeechRecognition;
+
+        var recognition = new webkitSpeechRecognition();
+        recognition.lang = 'ja';
+        recognition.interimResults = true;
+        recognition.continuous = true;
+
+        var isSpeech = false;
+        var date = new Date();
+
+        recognition.onsoundstart = function() {
+            $('#status').html("認識中");
+        };
+
+        recognition.onnomatch = function() {
+            $('#status').html("もう一度試してください");
+        };
+
+        recognition.onerror = function() {
+            $('#status').html("エラー");
+            voiceRecognition();
+        };
+        recognition.onsoundend = function() {
+            $('#status').html("停止中");
+            voiceRecognition();
+        };
+
+        recognition.onresult = function(event) {
+            var results = event.results;
+            var inner = document.getElementById('result_text').innerHTML;
+            for (var i = event.resultIndex; i < results.length; i++) {
+                if (results[i].isFinal) {
+                    var result = results[i][0].transcript;
+                    document.getElementById('result_text').innerHTML = result;
+
+                    $.post('/post', createPostObj(result, date), function(event) {
+                        console.log(event)
                     });
-                });
-            }
 
-            function createPostObj(text) {
-                var year = time.getFullYear();
-                var month = time.getMonth() + 1;
-                var day = time.getDate();
-                var hour = time.getHours();
-                var minute = time.getMinutes();
-                var second = time.getSeconds();
-                var millisecond = time.getMilliseconds();
-                return {
-                    "name" : document.getElementById('name').value, 
-                    "text" : text,
-                    "year" : year,
-                    "month" : month,
-                    "day" : day,
-                    "hour" : hour,
-                    "minute" : minute,
-                    "second" : second,
-                    "millisecond" : millisecond
-                };
+                    voiceRecognition();
+                } else {
+                    document.getElementById('result_text').innerHTML = results[i][0].transcript;
+                    isSpeech = true;
+                }
             }
-            function reset() {
-                $.ajax({
-                    url: '/reset',
-                    type: 'POST',
-                });
-            }
-        </script> 
-    
+        }
+        document.getElementById('status').innerHTML = 'start';
+        recognition.start();
+    }
+
+    $('#start').click(function() {
+        voiceRecognition();
+    });
+
+    $('#download').click(function() {
+        var fileName = window.prompt("ファイル名を決めてください", "minutes");
+        $.ajax({
+            url: '/download/' + fileName,
+            type: 'POST',
+        }).done(function(data) {
+            console.log(data);
+            var downLoadLink = document.createElement('a');
+            downLoadLink.download = fileName + '.txt';
+            downLoadLink.href = URL.createObjectURL(new Blob([data], {
+                type: 'text.plain'
+            }));
+            downLoadLink.dataset.downloadurl = ["text/plain", downLoadLink.download, downLoadLink.href].join(":");
+            downLoadLink.click();
+        });
+    });
+
+    $('#reset').click(function() {
+        $.ajax({
+            url: '/reset',
+            type: 'POST',
+        }).done(function() {
+            window.alert("会話データをリセットしました。");
+        })
+    });
+});
+    </script>     
 </head>
 <body>
-    <textarea id="result_text" cols="100" rows="10"></textarea><br>
-    <textarea id="status" cols="100" rows="1"></textarea><br>
-    <input type="button" onClick="voice_recognition();" value="音声認識開始"><input type="button" onClick="reset();" value="リセット"><br>
-    <input id="name" type="text" placeholder="user name"><br>
-    <div id="text_area" style="border: 1xp solid #444"></div>
+    <p><input id="name" type="text" placeholder="user name"></p>
+    <p><textarea id="result_text" cols="100" rows="10"></textarea></p>
+    <p><textarea id="status" cols="100" rows="1"></textarea></p>
+    </p><input id="start" type="button" value="録音開始"></p>
+    </p><input id="download" type="button" value="ダウンロード"></p>
+    </p><input id="reset" type="button" value="リセット"></p>
 </body>
 </html>
