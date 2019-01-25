@@ -1,9 +1,11 @@
+from logger import Logger 
 from flask import Flask, render_template, request, make_response, Response, jsonify
 import datetime
 import json
 import os
 import shutil
 
+logger = Logger().get_logger()
 app = Flask(__name__)
 text_list = []
 
@@ -28,8 +30,8 @@ def download(file_name):
     for list in text_list:
         file.write(list['name'] + ":" + list['text'] + "\n")
     file.close()
-
-    return open('static/download/' + file_name + '.txt', "rb").read()
+    open_file = open('static/download/' + file_name + '.txt', "rb").read()
+    return open_file
 
 
 @app.route("/post", methods=["POST"])
