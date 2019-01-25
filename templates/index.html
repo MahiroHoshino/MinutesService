@@ -82,9 +82,7 @@ $(function() {
                 if (results[i].isFinal) {
                     var result = results[i][0].transcript;
                     document.getElementById('result_text').innerHTML = result;
-                    $('#result').append('<p>'+ result +'</p>');
                     $.post('/post', createPostObj(result, date), function(event) {
-                        console.log(event)
                     });
 
                     voiceRecognition();
@@ -139,7 +137,7 @@ $(function() {
             // console.log(json);
             for(var i in json) {
                 // console.log(json[i].text);
-                $('#result').append('<p>'+ json[i].text +'</p>');
+                $('#result').append('<p>'+ json[i].name + " : " +json[i].text +'</p>');
             }
         });
     };

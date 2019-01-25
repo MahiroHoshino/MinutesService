@@ -57,7 +57,7 @@ def post():
         time = datetime.datetime(year, month, day, hour, minute, second, millisecond * 1000).strftime("%Y-%m-%d %H:%M:%S.%f")
 
         text_list.append({
-                'name' : name,
+                'name' : "Nameless" if name == "" else name,
                 'text' : text,
                 'time' : time
         })
