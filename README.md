@@ -13,6 +13,7 @@
     - python(Flask)
 - フロントエンド
     - html
+    - css
     - javascript (jQuery)
         - 音声認識 (https://developer.mozilla.org/en-US/docs/Web/API/SpeechRecognition)
 

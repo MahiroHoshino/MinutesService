@@ -18,7 +18,15 @@
             width: 100%;
             background: #eee;
             border: 1px solid #bebebe;
-            border-radius: 1px;
+            border-radius: 5px;
+        }
+        input {
+            background: #eee;
+            border: 1px solid #bebebe;
+            border-radius: 5px;
+        }
+        input[type="button"]:hover {
+            background: #bbb;
         }
     </style>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>    
@@ -134,16 +142,14 @@ $(function() {
         }).done(function(res) {
             $('#result').empty();
             var json = JSON.parse(res);
-            // console.log(json);
             for(var i in json) {
-                // console.log(json[i].text);
                 $('#result').append('<p>'+ json[i].name + " : " +json[i].text +'</p>');
             }
         });
     };
 
     (function() {
-        setInterval(comeBack, 1000);
+        setInterval(comeBack, 3000);
     })();
 
 });
@@ -152,7 +158,7 @@ $(function() {
 <body>
     <main>
         <p><input id="name" type="text" placeholder="user name"></p>
-        <p><textarea readonly id="result_text" cols="100" rows="10"></textarea></p>
+        <p><textarea readonly id="result_text" cols="100" rows="5"></textarea></p>
         <p><textarea readonly id="status" cols="100" rows="1"></textarea></p>
         <p><input id="start" type="button" value="録音開始"></p>
         <p><input id="download" type="button" value="ダウンロード"></p>
