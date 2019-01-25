@@ -34,6 +34,11 @@ def download(file_name):
     return open_file
 
 
+@app.route("/interval", methods=["POST"])
+def interval():
+    global text_list
+    return make_response(json.dumps(text_list, ensure_ascii=False))
+
 @app.route("/post", methods=["POST"])
 def post():
     if request.method == "POST":

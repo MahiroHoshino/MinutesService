@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>議事録サービス</title>
+    <style>
+        #result {
+            overflow-y: scroll;
+            height: 300px;
+        }
+        main {
+            width: 600px;
+            margin: 0 auto;
+        }
+        textarea {
+            width: 100%;
+            background: #eee;
+            border: 1px solid #bebebe;
+            border-radius: 1px;
+        }
+    </style>
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>    
     <script type="text/javascript">
 'use strict';
@@ -66,7 +82,7 @@ $(function() {
                 if (results[i].isFinal) {
                     var result = results[i][0].transcript;
                     document.getElementById('result_text').innerHTML = result;
-
+                    $('#result').append('<p>'+ result +'</p>');
                     $.post('/post', createPostObj(result, date), function(event) {
                         console.log(event)
                     });
@@ -104,22 +120,46 @@ $(function() {
     });
 
     $('#reset').click(function() {
+        $('#result').empty();
         $.ajax({
             url: '/reset',
             type: 'POST',
         }).done(function() {
             window.alert("会話データをリセットしました。");
-        })
+        });
     });
+
+    function comeBack() {
+        $.ajax({
+            url: '/interval',
+            type: 'POST',
+        }).done(function(res) {
+            $('#result').empty();
+            var json = JSON.parse(res);
+            // console.log(json);
+            for(var i in json) {
+                // console.log(json[i].text);
+                $('#result').append('<p>'+ json[i].text +'</p>');
+            }
+        });
+    };
+
+    (function() {
+        setInterval(comeBack, 1000);
+    })();
+
 });
     </script>     
 </head>
 <body>
-    <p><input id="name" type="text" placeholder="user name"></p>
-    <p><textarea id="result_text" cols="100" rows="10"></textarea></p>
-    <p><textarea id="status" cols="100" rows="1"></textarea></p>
-    </p><input id="start" type="button" value="録音開始"></p>
-    </p><input id="download" type="button" value="ダウンロード"></p>
-    </p><input id="reset" type="button" value="リセット"></p>
+    <main>
+        <p><input id="name" type="text" placeholder="user name"></p>
+        <p><textarea readonly id="result_text" cols="100" rows="10"></textarea></p>
+        <p><textarea readonly id="status" cols="100" rows="1"></textarea></p>
+        <p><input id="start" type="button" value="録音開始"></p>
+        <p><input id="download" type="button" value="ダウンロード"></p>
+        <p><input id="reset" type="button" value="リセット"></p>
+        <p><div id="result"></p>
+    </main>
 </body>
 </html>
