@@ -91,6 +91,7 @@ $(function() {
                     var result = results[i][0].transcript;
                     document.getElementById('result_text').innerHTML = result;
                     $.post('/post', createPostObj(result, date), function(event) {
+                        console.log(event);
                     });
 
                     voiceRecognition();
@@ -142,6 +143,7 @@ $(function() {
         }).done(function(res) {
             $('#result').empty();
             var json = JSON.parse(res);
+            console.log(json);
             for(var i in json) {
                 $('#result').append('<p>'+ json[i].name + " : " +json[i].text +'</p>');
             }
@@ -149,7 +151,7 @@ $(function() {
     };
 
     (function() {
-        setInterval(comeBack, 3000);
+        setInterval(comeBack, 1000);
     })();
 
 });

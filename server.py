@@ -7,7 +7,6 @@ import shutil
 
 logger = Logger().get_logger()
 app = Flask(__name__)
-text_list = []
 
 @app.route("/")
 def index():
@@ -16,7 +15,8 @@ def index():
 
 @app.route("/reset", methods=["POST"])
 def reset():
-    text_list.clear()
+    with open('static/json/text_data.json', 'w') as file:
+        file.write("")
     shutil.rmtree("./static/download")
     os.mkdir("./static/download")
     os.defpath
@@ -25,9 +25,20 @@ def reset():
 
 @app.route("/download/<file_name>", methods=["POST"])
 def download(file_name):
-    global text_list
+
+    read = []
+
+    file = open('static/json/text_data.json', 'r')
+    file.seek(0, 2)
+    if file.tell() == 0:
+        file.close()
+    else:
+        file.seek(0)
+        read = json.load(file)
+        file.close()
+
     file = open('static/download/' + file_name + '.txt', 'a', encoding='utf-8')
-    for list in text_list:
+    for list in read:
         file.write(list['name'] + ":" + list['text'] + "\n")
     file.close()
     open_file = open('static/download/' + file_name + '.txt', "rb").read()
@@ -36,13 +47,20 @@ def download(file_name):
 
 @app.route("/interval", methods=["POST"])
 def interval():
-    global text_list
-    return make_response(json.dumps(text_list, ensure_ascii=False))
+    file = open('static/json/text_data.json', 'r')
+    file.seek(0, 2)
+    if file.tell() == 0:
+        file.close()
+        return make_response(json.dumps([], ensure_ascii=False))
+    else:
+        file.seek(0)
+        read = json.load(file)
+        file.close()
+        return make_response(json.dumps(read, ensure_ascii=False))
 
 @app.route("/post", methods=["POST"])
 def post():
     if request.method == "POST":
-        global text_list
         name = request.form['name']
         text = request.form['text']
 
@@ -56,14 +74,30 @@ def post():
 
         time = datetime.datetime(year, month, day, hour, minute, second, millisecond * 1000).strftime("%Y-%m-%d %H:%M:%S.%f")
 
-        text_list.append({
-                'name' : "Nameless" if name == "" else name,
-                'text' : text,
-                'time' : time
-        })
-        text_list = sorted(text_list, key=lambda x: x['time'])
+        write_data = {
+            'name' : "Nameless" if name == "" else name,
+            'text' : text,
+            'time' : time
+        }
 
-        return make_response(json.dumps(text_list, ensure_ascii=False))
+        with open('static/json/text_data.json', 'ab+') as f:
+            f.seek(0, 2)
+            if f.tell() == 0:
+                f.write(json.dumps([write_data]).encode())
+            else:
+                f.seek(-1, 2)
+                f.truncate()
+                f.write(' , '.encode())
+                f.write(json.dumps(write_data).encode())
+                f.write(']'.encode())
+        
+        file = open('static/json/text_data.json', 'r')
+        json_read = json.load(file)
+
+        print(json_read)
+        json_read = sorted(json_read, key=lambda x: x['time'])
+
+        return make_response(json.dumps(json_read, ensure_ascii=False))
 
 
 if __name__ == "__main__":
